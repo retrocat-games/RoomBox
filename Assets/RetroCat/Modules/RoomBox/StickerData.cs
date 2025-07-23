@@ -8,10 +8,12 @@ namespace RetroCat.Modules.RoomBox
     public class StickerData : ScriptableObject
     {
         [SerializeField] private Sprite _sprite;
+        [SerializeField] private GameObject _prefab;
         [SerializeField] private StickerOrientation _orientation;
         [SerializeField] private List<StickerId> _banSurfaces = new List<StickerId>();
-        
+
         public Sprite Sprite => _sprite;
+        public GameObject Prefab => _prefab;
         public StickerOrientation Orientation => _orientation;
         public IReadOnlyList<StickerId> BanSurfaces => _banSurfaces;
     }

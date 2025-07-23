@@ -20,11 +20,20 @@ namespace RetroCat.Modules.RoomBox
             if (!CanPlaceSticker(data))
                 return;
 
-            var obj = new GameObject(data.name);
-            obj.transform.SetParent(transform, false);
-            obj.transform.localPosition = localPosition;
-            var renderer = obj.AddComponent<SpriteRenderer>();
-            renderer.sprite = data.Sprite;
+            GameObject obj;
+            if (data.Prefab != null)
+            {
+                obj = Instantiate(data.Prefab, transform);
+                obj.transform.localPosition = localPosition;
+            }
+            else
+            {
+                obj = new GameObject(data.name);
+                obj.transform.SetParent(transform, false);
+                obj.transform.localPosition = localPosition;
+                var renderer = obj.AddComponent<SpriteRenderer>();
+                renderer.sprite = data.Sprite;
+            }
             _placed.Add(new StickerInstance { sticker = data, gameObject = obj });
         }
     }

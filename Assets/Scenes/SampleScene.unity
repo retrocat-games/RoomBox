@@ -673,6 +673,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 519420031}
+--- !u!114 &1494923073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1494923067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adfd0cbb64cb42b293f94b022eb91373, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  inventory: {fileID: 1494923071}
+  placer: {fileID: 1494923072}
+  content: {fileID: 193649272}
+  itemSize: {x: 100, y: 100}
 --- !u!1 &1744051349
 GameObject:
   m_ObjectHideFlags: 0

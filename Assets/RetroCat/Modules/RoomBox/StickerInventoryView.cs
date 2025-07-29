@@ -6,7 +6,6 @@ namespace RetroCat.Modules.RoomBox
     public class StickerInventoryView : MonoBehaviour
     {
         [SerializeField] private StickerInventory inventory;
-        [SerializeField] private StickerPlacer placer;
         [SerializeField] private RectTransform content;
         [SerializeField] private Vector2 itemSize = new Vector2(100f, 100f);
 
@@ -23,7 +22,7 @@ namespace RetroCat.Modules.RoomBox
             for (int i = 0; i < inventory.stickers.Count; i++)
             {
                 var sticker = inventory.stickers[i];
-                var item = new GameObject($"StickerItem_{i}", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+                var item = new GameObject($"StickerItem_{i}", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(UISticker));
                 var rect = item.GetComponent<RectTransform>();
                 rect.SetParent(content, false);
                 rect.sizeDelta = itemSize;
@@ -34,15 +33,6 @@ namespace RetroCat.Modules.RoomBox
 
                 var image = item.GetComponent<Image>();
                 image.sprite = sticker.Sprite;
-
-                var button = item.GetComponent<Button>();
-                button.targetGraphic = image;
-                var data = sticker;
-                button.onClick.AddListener(() =>
-                {
-                    if (placer != null)
-                        placer.StartDrag(data);
-                });
             }
 
             var size = content.sizeDelta;

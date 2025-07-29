@@ -13,9 +13,16 @@ namespace RetroCat.Modules.RoomBox
             if (sticker == null)
                 return;
             _draggingSticker = sticker;
-            _draggingObject = new GameObject(sticker.name + "_drag");
-            var renderer = _draggingObject.AddComponent<SpriteRenderer>();
-            renderer.sprite = sticker.Sprite;
+            if (sticker.Prefab != null)
+            {
+                _draggingObject = Instantiate(sticker.Prefab);
+            }
+            else
+            {
+                _draggingObject = new GameObject(sticker.name + "_drag");
+                var renderer = _draggingObject.AddComponent<SpriteRenderer>();
+                renderer.sprite = sticker.Sprite;
+            }
         }
 
         private void Update()

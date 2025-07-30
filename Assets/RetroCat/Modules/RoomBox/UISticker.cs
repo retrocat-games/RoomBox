@@ -7,17 +7,21 @@ namespace RetroCat.Modules.RoomBox
     {
         [Header("Drag Settings")]
         [SerializeField] private float dragSensitivity = 1f;
-        
+
         private bool _isDragging = false;
         private Vector2 _dragOffset;
         private RectTransform _rectTransform;
         private StickerData _stickerData;
         private Vector2 _originalPosition;
+        private RectTransform _originalParent;
+        private Canvas _canvas;
         
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
             _originalPosition = _rectTransform.anchoredPosition;
+            _originalParent = _rectTransform.parent as RectTransform;
+            _canvas = GetComponentInParent<Canvas>();
         }
         
         public void SetStickerData(StickerData stickerData)
@@ -29,17 +33,23 @@ namespace RetroCat.Modules.RoomBox
         {
             Debug.Log("OnPointerDown");
             _isDragging = true;
-            
-            // Конвертируем позицию мыши в локальные координаты канваса
+
+            _originalPosition = _rectTransform.anchoredPosition;
+            _originalParent = _rectTransform.parent as RectTransform;
+
+            // Переносим стикер на канвас, чтобы ScrollView не перехватывал события
+            if (_canvas != null)
+                _rectTransform.SetParent(_canvas.transform, true);
+
+            // Конвертируем позицию указателя в координаты канваса
             Vector2 localPoint;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _rectTransform,
+                _canvas.transform as RectTransform,
                 eventData.position,
-                Camera.main, 
+                eventData.pressEventCamera,
                 out localPoint);
-            
-            _dragOffset = _rectTransform.anchoredPosition - localPoint;
-            _originalPosition = _rectTransform.anchoredPosition;
+
+            _dragOffset = _rectTransform.localPosition - (Vector3)localPoint;
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -48,6 +58,10 @@ namespace RetroCat.Modules.RoomBox
             if (_isDragging)
             {
                 _isDragging = false;
+                // Возвращаем родителя и позицию
+                if (_originalParent != null)
+                    _rectTransform.SetParent(_originalParent, true);
+
                 ReturnToOriginalPosition();
             }
         }
@@ -56,17 +70,17 @@ namespace RetroCat.Modules.RoomBox
         {
             if (_isDragging)
             {
-                // Конвертируем позицию мыши в локальные координаты канваса
+                // Конвертируем позицию указателя в локальные координаты канваса
                 Vector2 localPoint;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    _rectTransform,
+                    _canvas.transform as RectTransform,
                     eventData.position,
-                    Camera.main,
+                    eventData.pressEventCamera,
                     out localPoint);
-                
+
                 // Применяем смещение и обновляем позицию
-                Vector2 newPosition = localPoint + _dragOffset;
-                _rectTransform.anchoredPosition = newPosition;
+                Vector3 newPosition = localPoint + _dragOffset;
+                _rectTransform.localPosition = newPosition;
             }
         }
         

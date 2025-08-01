@@ -43,6 +43,7 @@ namespace RetroCat.Modules.RoomBox
         private bool _isExpanded = false;
         private Sequence _currentShiftAnimation;
         private UISticker _currentDraggedSticker;
+        private int _currentSortingOrder = 0;
 
         public bool IsExpanded => _isExpanded;
 
@@ -145,6 +146,7 @@ namespace RetroCat.Modules.RoomBox
             obj.transform.position = worldPos;
             var renderer = obj.AddComponent<SpriteRenderer>();
             renderer.sprite = data.Sprite;
+            renderer.sortingOrder = ++_currentSortingOrder;
         }
 
         public void SetExpandedState(bool isExpanded)

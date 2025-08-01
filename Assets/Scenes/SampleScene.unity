@@ -1845,6 +1845,7 @@ MonoBehaviour:
   stickers:
   - {fileID: 11400000, guid: b7dd12f1f1244497c952caaa594b6a01, type: 2}
   - {fileID: 11400000, guid: 9b372b6849d94441aaf7e55722afac87, type: 2}
+  - {fileID: 11400000, guid: a4a7af1f59b974017af9025aabdd1ba6, type: 2}
 --- !u!114 &1494923073
 MonoBehaviour:
   m_ObjectHideFlags: 0

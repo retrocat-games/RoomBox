@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
+using System;
 
 namespace RetroCat.Modules.RoomBox
 {
@@ -17,6 +18,10 @@ namespace RetroCat.Modules.RoomBox
         [Header("Visual Feedback")]
         [SerializeField] private Image _stickerImage;
         [SerializeField] private CanvasGroup _canvasGroup;
+        
+        // События для уведомления о перетаскивании
+        public event Action<UISticker> OnDragStarted;
+        public event Action<UISticker> OnDragEnded;
         
         private bool _isDragging = false;
         private Vector2 _dragOffset;
@@ -43,6 +48,7 @@ namespace RetroCat.Modules.RoomBox
 
         public void Initialize(StickerData stickerData)
         {
+            _stickerData = stickerData;
             _stickerImage.sprite = stickerData.Sprite;
         }
         
@@ -71,6 +77,9 @@ namespace RetroCat.Modules.RoomBox
             
             // Анимация увеличения при начале перетаскивания
             AnimateScaleOnDrag(true);
+            
+            // Уведомляем о начале перетаскивания
+            OnDragStarted?.Invoke(this);
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -85,6 +94,9 @@ namespace RetroCat.Modules.RoomBox
                     _rectTransform.SetParent(_originalParent, true);
 
                 ReturnToOriginalPosition();
+                
+                // Уведомляем о конце перетаскивания
+                OnDragEnded?.Invoke(this);
             }
         }
         

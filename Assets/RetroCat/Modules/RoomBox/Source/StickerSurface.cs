@@ -25,6 +25,13 @@ namespace RetroCat.Modules.RoomBox
             obj.transform.localPosition = localPosition;
             var renderer = obj.AddComponent<SpriteRenderer>();
             renderer.sprite = data.Sprite;
+
+            // Ensure newly placed stickers appear on top of previously placed ones
+            int sortingOrder = _placed.Count > 0
+                ? _placed.Max(p => p.gameObject.GetComponent<SpriteRenderer>().sortingOrder) + 1
+                : 0;
+            renderer.sortingOrder = sortingOrder;
+
             _placed.Add(new StickerInstance { sticker = data, gameObject = obj });
         }
     }

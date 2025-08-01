@@ -32,6 +32,8 @@ namespace RetroCat.Modules.RoomBox
         private Canvas _canvas;
         private Vector3 _originalScale;
         private Sequence _currentAnimation;
+
+        public StickerData StickerData => _stickerData;
         
         private void Awake()
         {

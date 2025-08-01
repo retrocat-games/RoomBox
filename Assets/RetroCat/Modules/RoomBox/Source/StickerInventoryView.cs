@@ -124,8 +124,27 @@ namespace RetroCat.Modules.RoomBox
 
         public void OnStickerDragEnded(UISticker sticker)
         {
+            SpawnWorldSticker(sticker);
             _currentDraggedSticker = null;
             SetExpandedState(false);
+        }
+
+        private void SpawnWorldSticker(UISticker sticker)
+        {
+            if (sticker == null || Camera.main == null)
+                return;
+
+            var data = sticker.StickerData;
+            if (data == null)
+                return;
+
+            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            worldPos.z = 0f;
+
+            var obj = new GameObject(data.name);
+            obj.transform.position = worldPos;
+            var renderer = obj.AddComponent<SpriteRenderer>();
+            renderer.sprite = data.Sprite;
         }
 
         public void SetExpandedState(bool isExpanded)

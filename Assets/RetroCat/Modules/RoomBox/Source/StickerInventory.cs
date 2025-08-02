@@ -13,5 +13,11 @@ namespace RetroCat.Modules.RoomBox
                 return null;
             return stickers[index];
         }
+
+        public void RemoveSticker(StickerData sticker)
+        {
+            if (sticker != null)
+                stickers.Remove(sticker);
+        }
     }
 }

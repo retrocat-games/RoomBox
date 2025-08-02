@@ -150,6 +150,16 @@ namespace RetroCat.Modules.RoomBox
             worldPos.z = 0f;
 
             _worldStickerFactory?.Create(worldPos, data, ++_currentSortingOrder);
+
+            if (inventory != null)
+                inventory.RemoveSticker(data);
+
+            sticker.OnDragStarted -= OnStickerDragStarted;
+            sticker.OnDragEnded -= OnStickerDragEnded;
+            _spawnedStickers.Remove(sticker);
+            Destroy(sticker.gameObject);
+
+            UpdateContentSize();
         }
 
         public void SetExpandedState(bool isExpanded)

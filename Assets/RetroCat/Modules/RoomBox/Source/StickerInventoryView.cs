@@ -49,6 +49,12 @@ namespace RetroCat.Modules.RoomBox
         private RectTransform _scrollViewRect;
         private Camera _uiCamera;
 
+        [Header("Drag Outside Settings")]
+        [SerializeField] private float outsideScaleDuration = 0.2f;
+        private bool _isPointerOutside;
+        private Vector2 _draggedStickerOriginalSize;
+        private Tweener _currentSizeTween;
+
         public bool IsExpanded => _isExpanded;
 
         private void Awake()
@@ -137,6 +143,12 @@ namespace RetroCat.Modules.RoomBox
         public void OnStickerDragStarted(UISticker sticker)
         {
             _currentDraggedSticker = sticker;
+            if (sticker != null)
+            {
+                var rect = sticker.GetComponent<RectTransform>();
+                _draggedStickerOriginalSize = rect.sizeDelta;
+                _isPointerOutside = IsPointerOutsideScrollView();
+            }
             SetExpandedState(true);
         }
 
@@ -147,6 +159,7 @@ namespace RetroCat.Modules.RoomBox
                 SpawnWorldSticker(sticker);
             }
             _currentDraggedSticker = null;
+            _currentSizeTween?.Kill();
             SetExpandedState(false);
         }
 
@@ -180,6 +193,69 @@ namespace RetroCat.Modules.RoomBox
             Destroy(sticker.gameObject);
 
             UpdateContentSize();
+        }
+
+        private void Update()
+        {
+            if (_currentDraggedSticker == null)
+                return;
+
+            bool outside = IsPointerOutsideScrollView();
+            if (outside != _isPointerOutside)
+            {
+                _isPointerOutside = outside;
+                if (outside)
+                    AnimateStickerToWorldSize(_currentDraggedSticker);
+                else
+                    AnimateStickerToInventorySize(_currentDraggedSticker);
+            }
+        }
+
+        private void AnimateStickerToWorldSize(UISticker sticker)
+        {
+            if (sticker == null) return;
+
+            var rect = sticker.GetComponent<RectTransform>();
+            var sprite = sticker.StickerData != null ? sticker.StickerData.Sprite : null;
+            Vector2 target = _draggedStickerOriginalSize;
+
+            if (sprite != null)
+            {
+                target = GetWorldStickerScreenSize(sprite);
+            }
+
+            float scale = sticker.transform.localScale.x;
+            _currentSizeTween?.Kill();
+            _currentSizeTween = rect.DOSizeDelta(target / scale, outsideScaleDuration)
+                .SetEase(Ease.OutQuad);
+        }
+
+        private void AnimateStickerToInventorySize(UISticker sticker)
+        {
+            if (sticker == null) return;
+
+            var rect = sticker.GetComponent<RectTransform>();
+            float scale = sticker.transform.localScale.x;
+            _currentSizeTween?.Kill();
+            _currentSizeTween = rect.DOSizeDelta(_draggedStickerOriginalSize / scale, outsideScaleDuration)
+                .SetEase(Ease.OutQuad);
+        }
+
+        private Vector2 GetWorldStickerScreenSize(Sprite sprite)
+        {
+            if (sprite == null || Camera.main == null)
+                return _draggedStickerOriginalSize;
+
+            Vector2 worldSize = sprite.bounds.size;
+            var camera = Camera.main;
+            Vector3 origin = Vector3.zero;
+            Vector3 screenOrigin = camera.WorldToScreenPoint(origin);
+            Vector3 screenX = camera.WorldToScreenPoint(origin + new Vector3(worldSize.x, 0f, 0f));
+            Vector3 screenY = camera.WorldToScreenPoint(origin + new Vector3(0f, worldSize.y, 0f));
+
+            float width = Mathf.Abs(screenX.x - screenOrigin.x);
+            float height = Mathf.Abs(screenY.y - screenOrigin.y);
+            return new Vector2(width, height);
         }
 
         public void SetExpandedState(bool isExpanded)

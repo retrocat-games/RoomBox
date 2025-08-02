@@ -34,7 +34,8 @@ namespace RetroCat.Modules.RoomBox
             _spriteRenderer.sprite = data.Sprite;
             _spriteRenderer.sortingOrder = sortingOrder;
             gameObject.name = data.name;
-
+            
+            SetUnrevealed();
             PlayReveal();
         }
 
@@ -67,6 +68,11 @@ namespace RetroCat.Modules.RoomBox
             }
 
             _spriteRenderer.material.SetFloat(RevealId, 1f);
+        }
+
+        private void SetUnrevealed()
+        {
+            _spriteRenderer.material.SetFloat(RevealId, 0f);
         }
     }
 }

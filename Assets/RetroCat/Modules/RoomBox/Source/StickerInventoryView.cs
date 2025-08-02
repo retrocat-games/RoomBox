@@ -32,6 +32,7 @@ namespace RetroCat.Modules.RoomBox
         [SerializeField] private StickerInventory inventory;
         [SerializeField] private RectTransform content;
         [SerializeField] private UISticker _stickerPrefab;
+        [SerializeField] private WorldSticker _worldStickerPrefab;
         [SerializeField] private Vector2 itemSize = new Vector2(100f, 100f);
 
         [Header("Animation Settings")]
@@ -44,8 +45,14 @@ namespace RetroCat.Modules.RoomBox
         private Sequence _currentShiftAnimation;
         private UISticker _currentDraggedSticker;
         private int _currentSortingOrder = 0;
+        private IWorldStickerFactory _worldStickerFactory;
 
         public bool IsExpanded => _isExpanded;
+
+        private void Awake()
+        {
+            _worldStickerFactory = new WorldStickerFactory(_worldStickerPrefab);
+        }
 
         private void Start()
         {
@@ -142,11 +149,7 @@ namespace RetroCat.Modules.RoomBox
             Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             worldPos.z = 0f;
 
-            var obj = new GameObject(data.name);
-            obj.transform.position = worldPos;
-            var renderer = obj.AddComponent<SpriteRenderer>();
-            renderer.sprite = data.Sprite;
-            renderer.sortingOrder = ++_currentSortingOrder;
+            _worldStickerFactory?.Create(worldPos, data, ++_currentSortingOrder);
         }
 
         public void SetExpandedState(bool isExpanded)

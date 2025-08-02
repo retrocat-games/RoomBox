@@ -46,12 +46,22 @@ namespace RetroCat.Modules.RoomBox
         private UISticker _currentDraggedSticker;
         private int _currentSortingOrder = 0;
         private IWorldStickerFactory _worldStickerFactory;
+        private RectTransform _scrollViewRect;
+        private Camera _uiCamera;
 
         public bool IsExpanded => _isExpanded;
 
         private void Awake()
         {
             _worldStickerFactory = new WorldStickerFactory(_worldStickerPrefab);
+            var scrollRect = content != null ? content.GetComponentInParent<ScrollRect>() : null;
+            if (scrollRect != null)
+            {
+                _scrollViewRect = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.GetComponent<RectTransform>();
+                var canvas = scrollRect.GetComponentInParent<Canvas>();
+                if (canvas != null)
+                    _uiCamera = canvas.worldCamera;
+            }
         }
 
         private void Start()
@@ -132,9 +142,19 @@ namespace RetroCat.Modules.RoomBox
 
         public void OnStickerDragEnded(UISticker sticker)
         {
-            SpawnWorldSticker(sticker);
+            if (IsPointerOutsideScrollView())
+            {
+                SpawnWorldSticker(sticker);
+            }
             _currentDraggedSticker = null;
             SetExpandedState(false);
+        }
+
+        private bool IsPointerOutsideScrollView()
+        {
+            if (_scrollViewRect == null)
+                return true;
+            return !RectTransformUtility.RectangleContainsScreenPoint(_scrollViewRect, Input.mousePosition, _uiCamera);
         }
 
         private void SpawnWorldSticker(UISticker sticker)

@@ -48,6 +48,7 @@ namespace RetroCat.Modules.RoomBox
         private IWorldStickerFactory _worldStickerFactory;
         private RectTransform _scrollViewRect;
         private Camera _uiCamera;
+        private Canvas _canvas;
 
         [Header("Drag Outside Settings")]
         [SerializeField] private float outsideScaleDuration = 0.2f;
@@ -66,7 +67,10 @@ namespace RetroCat.Modules.RoomBox
                 _scrollViewRect = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.GetComponent<RectTransform>();
                 var canvas = scrollRect.GetComponentInParent<Canvas>();
                 if (canvas != null)
+                {
                     _uiCamera = canvas.worldCamera;
+                    _canvas = canvas;
+                }
             }
         }
 
@@ -225,8 +229,9 @@ namespace RetroCat.Modules.RoomBox
             }
 
             float scale = sticker.transform.localScale.x;
+            float canvasScale = _canvas != null ? _canvas.scaleFactor : 1f;
             _currentSizeTween?.Kill();
-            _currentSizeTween = rect.DOSizeDelta(target / scale, outsideScaleDuration)
+            _currentSizeTween = rect.DOSizeDelta(target / (scale * canvasScale), outsideScaleDuration)
                 .SetEase(Ease.OutQuad);
         }
 
@@ -235,9 +240,8 @@ namespace RetroCat.Modules.RoomBox
             if (sticker == null) return;
 
             var rect = sticker.GetComponent<RectTransform>();
-            float scale = sticker.transform.localScale.x;
             _currentSizeTween?.Kill();
-            _currentSizeTween = rect.DOSizeDelta(_draggedStickerOriginalSize / scale, outsideScaleDuration)
+            _currentSizeTween = rect.DOSizeDelta(_draggedStickerOriginalSize, outsideScaleDuration)
                 .SetEase(Ease.OutQuad);
         }
 

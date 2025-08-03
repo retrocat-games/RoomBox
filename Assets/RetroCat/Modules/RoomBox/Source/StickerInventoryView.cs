@@ -183,7 +183,9 @@ namespace RetroCat.Modules.RoomBox
             if (data == null)
                 return;
 
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 screenPos = Input.mousePosition;
+            screenPos.z = Mathf.Abs(Camera.main.transform.position.z);
+            Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
 
             _worldStickerFactory?.Create(worldPos, data, ++_currentSortingOrder);

@@ -188,6 +188,12 @@ namespace RetroCat.Modules.RoomBox
             Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
             worldPos.z = 0f;
 
+            if (data.Sprite != null)
+            {
+                Vector2 size = data.Sprite.bounds.size;
+                worldPos += new Vector3(size.x * 0.5f, -size.y * 0.5f, 0f);
+            }
+
             _worldStickerFactory?.Create(worldPos, data, ++_currentSortingOrder);
 
             if (inventory != null)

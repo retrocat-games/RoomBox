@@ -182,19 +182,10 @@ namespace RetroCat.Modules.RoomBox
             var data = sticker.StickerData;
             if (data == null)
                 return;
-
-            Vector3 screenPos = Input.mousePosition;
-            screenPos.z = Mathf.Abs(Camera.main.transform.position.z);
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
-            worldPos.z = 0f;
-
-            if (data.Sprite != null)
-            {
-                Vector2 size = data.Sprite.bounds.size;
-                worldPos += new Vector3(size.x * 0.5f, -size.y * 0.5f, 0f);
-            }
-
-            _worldStickerFactory?.Create(worldPos, data, ++_currentSortingOrder);
+            
+            _worldStickerFactory?.Create(GetStickerWorldPosition(sticker), 
+                data,
+                ++_currentSortingOrder);
 
             if (inventory != null)
                 inventory.RemoveSticker(data);
@@ -206,6 +197,19 @@ namespace RetroCat.Modules.RoomBox
 
             UpdateContentSize();
         }
+        
+        private Vector3 GetStickerWorldPosition(UISticker sticker)
+        {
+            Vector3[] corners = new Vector3[4];
+            sticker.RectTransform.GetWorldCorners(corners);
+            Vector3 screenCenter = (corners[0] + corners[2]) / 2f;
+
+            screenCenter.z = Mathf.Abs(Camera.main.transform.position.z);
+
+            // Переводим из экранной в мировую
+            return Camera.main.ScreenToWorldPoint(screenCenter);
+        }
+
 
         private void Update()
         {

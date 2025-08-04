@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 using System;
+using UnityEngine.Serialization;
 
 namespace RetroCat.Modules.RoomBox
 {
@@ -25,7 +26,6 @@ namespace RetroCat.Modules.RoomBox
         
         private bool _isDragging = false;
         private Vector2 _dragOffset;
-        private RectTransform _rectTransform;
         private StickerData _stickerData;
         private Vector2 _originalPosition;
         private RectTransform _originalParent;
@@ -34,13 +34,14 @@ namespace RetroCat.Modules.RoomBox
         private Sequence _currentAnimation;
 
         public StickerData StickerData => _stickerData;
-        
+        public RectTransform RectTransform { get; private set; }
+
         private void Awake()
         {
-            _rectTransform = GetComponent<RectTransform>();
-            _originalPosition = _rectTransform.anchoredPosition;
-            _originalParent = _rectTransform.parent as RectTransform;
-            _originalScale = _rectTransform.localScale;
+            RectTransform = GetComponent<RectTransform>();
+            _originalPosition = RectTransform.anchoredPosition;
+            _originalParent = RectTransform.parent as RectTransform;
+            _originalScale = RectTransform.localScale;
             _canvas = FindAnyObjectByType(typeof(Canvas)) as Canvas;
             
             // Получаем CanvasGroup если его нет
@@ -62,11 +63,11 @@ namespace RetroCat.Modules.RoomBox
             // Останавливаем предыдущую анимацию
             _currentAnimation?.Kill();
             
-            _originalPosition = _rectTransform.anchoredPosition;
-            _originalParent = _rectTransform.parent as RectTransform;
+            _originalPosition = RectTransform.anchoredPosition;
+            _originalParent = RectTransform.parent as RectTransform;
 
             if (_canvas != null)
-                _rectTransform.SetParent(_canvas.transform, true);
+                RectTransform.SetParent(_canvas.transform, true);
 
             Vector2 localPoint;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -75,7 +76,7 @@ namespace RetroCat.Modules.RoomBox
                 eventData.pressEventCamera,
                 out localPoint);
 
-            _dragOffset = _rectTransform.localPosition - (Vector3)localPoint;
+            _dragOffset = RectTransform.localPosition - (Vector3)localPoint;
             
             // Анимация увеличения при начале перетаскивания
             AnimateScaleOnDrag(true);
@@ -93,7 +94,7 @@ namespace RetroCat.Modules.RoomBox
                 
                 // Возвращаем родителя и позицию
                 if (_originalParent != null)
-                    _rectTransform.SetParent(_originalParent, true);
+                    RectTransform.SetParent(_originalParent, true);
 
                 ReturnToOriginalPosition();
                 
@@ -116,7 +117,7 @@ namespace RetroCat.Modules.RoomBox
 
                 // Применяем смещение и обновляем позицию
                 Vector3 newPosition = localPoint + _dragOffset;
-                _rectTransform.localPosition = newPosition;
+                RectTransform.localPosition = newPosition;
             }
         }
         
@@ -129,11 +130,11 @@ namespace RetroCat.Modules.RoomBox
             _currentAnimation = DOTween.Sequence();
             
             // Анимация возврата к оригинальному размеру
-            _currentAnimation.Join(_rectTransform.DOScale(_originalScale, scaleDuration)
+            _currentAnimation.Join(RectTransform.DOScale(_originalScale, scaleDuration)
                 .SetEase(scaleEase));
             
             // Анимация возврата к оригинальной позиции
-            _currentAnimation.Join(_rectTransform.DOAnchorPos(_originalPosition, returnDuration)
+            _currentAnimation.Join(RectTransform.DOAnchorPos(_originalPosition, returnDuration)
                 .SetEase(returnEase));
             
             // Дополнительный эффект прозрачности
@@ -146,7 +147,7 @@ namespace RetroCat.Modules.RoomBox
             // Добавляем небольшой эффект отскока
             _currentAnimation.OnComplete(() => {
                 // Небольшая анимация отскока
-                _rectTransform.DOPunchScale(Vector3.one * 0.05f, 0.2f, 3, 0.5f)
+                RectTransform.DOPunchScale(Vector3.one * 0.05f, 0.2f, 3, 0.5f)
                     .SetEase(Ease.OutElastic);
             });
         }
@@ -155,7 +156,7 @@ namespace RetroCat.Modules.RoomBox
         {
             Vector3 targetScale = isDragging ? _originalScale * scaleOnDrag : _originalScale;
             
-            _rectTransform.DOScale(targetScale, scaleDuration)
+            RectTransform.DOScale(targetScale, scaleDuration)
                 .SetEase(scaleEase);
         }
         

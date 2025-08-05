@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.Collections.Generic;
+using UniRx;
+using Reflex.Attributes;
 
 namespace RetroCat.Modules.RoomBox
 {
@@ -29,10 +31,9 @@ namespace RetroCat.Modules.RoomBox
     public class StickerInventoryView : MonoBehaviour, IStickerDragObserver, IContentAnimator, IInventoryStateManager
     {
         [Header("Inventory Settings")]
-        [SerializeField] private StickerInventory inventory;
+        [Inject] private StickerInventory inventory;
         [SerializeField] private RectTransform content;
         [SerializeField] private UISticker _stickerPrefab;
-        [SerializeField] private WorldSticker _worldStickerPrefab;
         [SerializeField] private Vector2 itemSize = new Vector2(100f, 100f);
 
         [Header("Animation Settings")]
@@ -45,7 +46,7 @@ namespace RetroCat.Modules.RoomBox
         private Sequence _currentShiftAnimation;
         private UISticker _currentDraggedSticker;
         private int _currentSortingOrder = 0;
-        private IWorldStickerFactory _worldStickerFactory;
+        [Inject] private IWorldStickerFactory _worldStickerFactory;
         private RectTransform _scrollViewRect;
         private Camera _uiCamera;
         private Canvas _canvas;
@@ -60,7 +61,6 @@ namespace RetroCat.Modules.RoomBox
 
         private void Awake()
         {
-            _worldStickerFactory = new WorldStickerFactory(_worldStickerPrefab);
             var scrollRect = content != null ? content.GetComponentInParent<ScrollRect>() : null;
             if (scrollRect != null)
             {
@@ -77,6 +77,34 @@ namespace RetroCat.Modules.RoomBox
         private void Start()
         {
             Load();
+
+            if (inventory != null)
+            {
+                inventory.Stickers.ObserveAdd()
+                    .Subscribe(e =>
+                    {
+                        var item = CreateStickerItem(e.Value, e.Index);
+                        _spawnedStickers.Insert(e.Index, item);
+                        RepositionStickers();
+                        UpdateContentSize();
+                    })
+                    .AddTo(this);
+
+                inventory.Stickers.ObserveRemove()
+                    .Subscribe(e =>
+                    {
+                        if (e.Index < 0 || e.Index >= _spawnedStickers.Count)
+                            return;
+                        var sticker = _spawnedStickers[e.Index];
+                        sticker.OnDragStarted -= OnStickerDragStarted;
+                        sticker.OnDragEnded -= OnStickerDragEnded;
+                        _spawnedStickers.RemoveAt(e.Index);
+                        Destroy(sticker.gameObject);
+                        RepositionStickers();
+                        UpdateContentSize();
+                    })
+                    .AddTo(this);
+            }
         }
 
         public void Load()
@@ -86,14 +114,15 @@ namespace RetroCat.Modules.RoomBox
 
             ClearExistingStickers();
 
-            for (int i = 0; i < inventory.stickers.Count; i++)
+            for (int i = 0; i < inventory.Stickers.Count; i++)
             {
-                StickerData stickerData = inventory.stickers[i];
+                StickerData stickerData = inventory.Stickers[i];
                 UISticker item = CreateStickerItem(stickerData, i);
                 _spawnedStickers.Add(item);
             }
 
             UpdateContentSize();
+            RepositionStickers();
         }
 
         private void ClearExistingStickers()
@@ -139,8 +168,18 @@ namespace RetroCat.Modules.RoomBox
             if (content != null)
             {
                 var size = content.sizeDelta;
-                size.x = inventory.stickers.Count * itemSize.x;
+                size.x = inventory.Stickers.Count * itemSize.x;
                 content.sizeDelta = size;
+            }
+        }
+
+        private void RepositionStickers()
+        {
+            for (int i = 0; i < _spawnedStickers.Count; i++)
+            {
+                var rect = _spawnedStickers[i].GetComponent<RectTransform>();
+                if (rect != null)
+                    rect.anchoredPosition = new Vector2(i * itemSize.x, 0f);
             }
         }
 
@@ -183,19 +222,12 @@ namespace RetroCat.Modules.RoomBox
             if (data == null)
                 return;
             
-            _worldStickerFactory?.Create(GetStickerWorldPosition(sticker), 
+            _worldStickerFactory?.Create(GetStickerWorldPosition(sticker),
                 data,
                 ++_currentSortingOrder);
 
             if (inventory != null)
                 inventory.RemoveSticker(data);
-
-            sticker.OnDragStarted -= OnStickerDragStarted;
-            sticker.OnDragEnded -= OnStickerDragEnded;
-            _spawnedStickers.Remove(sticker);
-            Destroy(sticker.gameObject);
-
-            UpdateContentSize();
         }
         
         private Vector3 GetStickerWorldPosition(UISticker sticker)

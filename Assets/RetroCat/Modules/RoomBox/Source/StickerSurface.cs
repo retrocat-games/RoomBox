@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Reflex.Attributes;
 
 namespace RetroCat.Modules.RoomBox
 {
@@ -8,14 +9,8 @@ namespace RetroCat.Modules.RoomBox
     public class StickerSurface : MonoBehaviour
     {
         [SerializeField] private StickerId id;
-        [SerializeField] private WorldSticker _worldStickerPrefab;
         private readonly List<StickerInstance> _placed = new List<StickerInstance>();
-        private IWorldStickerFactory _worldStickerFactory;
-
-        private void Awake()
-        {
-            _worldStickerFactory = new WorldStickerFactory(_worldStickerPrefab);
-        }
+        [Inject] private IWorldStickerFactory _worldStickerFactory;
 
         public bool CanPlaceSticker(StickerData data)
         {
